@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { ArgumentFeedback } from './argument-feedback';
 import {
   Select,
   SelectContent,
@@ -81,29 +82,41 @@ export function DebateInterface({
           </Card>
         )}
 
-        {messages.map((message) => (
-          <Card
-            key={message.id}
-            className={`p-4 ${
-              message.role === 'user'
-                ? 'bg-primary text-primary-foreground ml-8'
-                : 'bg-secondary mr-8'
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <Badge variant={message.role === 'user' ? 'default' : 'secondary'}>
-                {message.role === 'user' ? 'You' : 'AI Opponent'}
-              </Badge>
-              <div className="flex-1 whitespace-pre-wrap">
-                {message.parts
-                  .filter((part) => part.type === 'text')
-                  .map((part, idx) => (
-                    <span key={idx}>{(part as { text: string }).text}</span>
-                  ))}
-              </div>
+        {messages.map((message) => {
+          const messageText = message.parts
+            .filter((part) => part.type === 'text')
+            .map((part) => (part as { text: string }).text)
+            .join('');
+
+          return (
+            <div key={message.id}>
+              <Card
+                className={`p-4 ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground ml-8'
+                    : 'bg-secondary mr-8'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <Badge variant={message.role === 'user' ? 'default' : 'secondary'}>
+                    {message.role === 'user' ? 'You' : 'AI Opponent'}
+                  </Badge>
+                  <div className="flex-1 whitespace-pre-wrap">{messageText}</div>
+                </div>
+              </Card>
+              {message.role === 'user' && (
+                <div className="ml-8">
+                  <ArgumentFeedback
+                    messageId={message.id}
+                    argument={messageText}
+                    topic={topic}
+                    position={userPosition}
+                  />
+                </div>
+              )}
             </div>
-          </Card>
-        ))}
+          );
+        })}
 
         {isLoading && (
           <Card className="p-4 bg-secondary mr-8">
