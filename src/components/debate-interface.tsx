@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ArgumentFeedback } from './argument-feedback';
+import { DebateStats } from './debate-stats';
+import { DebateExport } from './debate-export';
 import {
   Select,
   SelectContent,
@@ -60,12 +62,26 @@ export function DebateInterface({
     setCurrentArgument('');
   };
 
+  const userMessages = messages.filter((m) => m.role === 'user');
+
   return (
     <div className="space-y-4">
       <Card className="p-6">
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold">Debate Topic</h2>
-          <p className="text-lg">{topic}</p>
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold">Debate Topic</h2>
+              <p className="text-lg mt-1">{topic}</p>
+            </div>
+            {messages.length > 0 && (
+              <DebateExport
+                messages={messages}
+                topic={topic}
+                userPosition={userPosition}
+                aiPosition={aiPosition}
+              />
+            )}
+          </div>
           <div className="flex gap-2 mt-4">
             <Badge variant="outline">You: {userPosition}</Badge>
             <Badge variant="secondary">AI: {aiPosition}</Badge>
@@ -73,6 +89,10 @@ export function DebateInterface({
           </div>
         </div>
       </Card>
+
+      {messages.length > 0 && (
+        <DebateStats totalTurns={messages.length} userTurns={userMessages.length} />
+      )}
 
       <div className="space-y-4 min-h-[400px] max-h-[600px] overflow-y-auto">
         {messages.length === 0 && (
@@ -137,7 +157,13 @@ export function DebateInterface({
           <Textarea
             value={currentArgument}
             onChange={(e) => setCurrentArgument(e.target.value)}
-            placeholder="Type your argument here..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                handleSubmit();
+              }
+            }}
+            placeholder="Type your argument here... (Ctrl/Cmd+Enter to submit)"
             className="min-h-[120px]"
             disabled={isLoading}
           />
